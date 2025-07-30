@@ -5,16 +5,11 @@
 ---
 
 > No documentation. No disclosure.  
-> If you have this — you already know.  
-> If you don’t — you were never meant to.
 
 ---
 
-**Status:** ☽ Obscured  
-**Access:** Restricted  
-**Origin:** Forgotten  
-**Purpose:** Unknown
-
+**Developement in progress**
 ---
 
 > _Only the night remembers._  
+`\033[31mOnly the night remembers.\033[0m` 
