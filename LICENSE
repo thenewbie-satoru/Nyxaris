@@ -3,41 +3,32 @@ Copyright © [2025] 0xOblivion. All rights reserved.
 BY USING, COPYING, OR DISTRIBUTING THIS SOFTWARE, YOU AGREE TO THE FOLLOWING TERMS:
 
 1. Ownership
-
 This software and all derivative works remain the sole property of 0xOblivion. You do not gain ownership of the software itself.
 
 2. Permitted Use
-
 You may use this software for:
-
-Educational purposes
-
-Research and security testing (only on systems you own or have explicit permission to test)
-
-Commercial purposes, including selling services or products built using this software
+  - Educational purposes
+  - Research and security testing (only on systems you own or have explicit permission to test)
+  - Commercial purposes, including selling services or products built using this software
 
 3. Prohibited Use
-
 You may not use this software to:
-
-Access, exploit, damage, or steal from any system without explicit authorization
-
-Conduct attacks on third-party systems or networks
-
-Violate any local, national, or international laws
+  - Access, exploit, damage, or steal from any system without explicit authorization
+  - Conduct attacks on third-party systems or networks
+  - Violate any local, national, or international laws
 
 4. Distribution
-
 You may distribute this software only with this license attached. You may not remove, modify, or bypass the restrictions in this license.
 
 5. Liability Disclaimer
-
-This software is provided “AS IS”. 0xOblivion is not responsible for any damages, losses, or legal consequences arising from your use, whether permitted or prohibited.
+This software is provided "AS IS". 0xOblivion is not responsible for any damages, losses, or legal consequences arising from your use, whether permitted or prohibited.
 
 6. Warranty Disclaimer
-
 No warranty of any kind is provided. You assume all risks associated with using this software.
 
 7. Acceptance
+By using, modifying, or distributing this software, you agree to comply with this license. Non-compliance may result in legal consequences.
 
-By using, modifying, or distributing this software, you agree to comply with this license. Non-compliance may result in legal consequences
+8. EULA Reference
+By using this tool, you also agree to the full End User License Agreement (EULA) available at:  
+[https://github.com/thenewbie-satoru/Nyxaris/blob/main/EULA]
